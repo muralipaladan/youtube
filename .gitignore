@@ -1,0 +1,14 @@
+# API keys / secrets - ithu GitHub-il pokaruthu
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
