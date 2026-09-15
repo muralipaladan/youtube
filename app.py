@@ -1,10 +1,11 @@
 import streamlit as st
+import urllib.parse
 from yt_dlp import YoutubeDL
 from deep_translator import GoogleTranslator
 
-# മൊബൈൽ ബ്രൗസറുകൾക്കായി ഒപ്റ്റിമൈസ് ചെയ്ത പേജ്
+# മൊബൈൽ ഫ്രണ്ട്‌ലി പേജ് കോൺഫിഗറേഷൻ
 st.set_page_config(
-    page_title="Smart YT Playlist Maker",
+    page_title="Smart YT Playlist Share",
     page_icon="🎬",
     layout="centered",
     initial_sidebar_state="collapsed"
@@ -21,10 +22,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🎬 യൂട്യൂബ് പ്ലേലിസ്റ്റ് ക്രിയേറ്റർ")
-st.caption("വിഷയം നൽകുക; മലയാളത്തിലോ ഇംഗ്ലീഷിലോ ഉള്ള മികച്ച പ്ലേലിസ്റ്റ് സ്വന്തമാക്കുക.")
+st.title("🎬 യൂട്യൂബ് പ്ലേലിസ്റ്റ് ഷെയറർ")
+st.caption("ഏത് വിഷയത്തിന്റെയും മികച്ച വീഡിയോകൾ കണ്ടെത്തി ഒറ്റ ലിങ്കായി ഷെയർ ചെയ്യാം.")
 
-# ഇൻപുട്ട് ഘടകങ്ങൾ
+# ഇൻപുട്ടുകൾ
 topic = st.text_input(
     "പഠിക്കേണ്ട വിഷയം (Topic):",
     placeholder="ഉദാ: Mutual Fund basics, Web development..."
@@ -45,18 +46,15 @@ with col2:
         index=1
     )
 
-# വിവർത്തന ഓപ്ഷൻ
 translate_option = st.checkbox(
-    "തലക്കെട്ടുകൾ മലയാളത്തിലേക്ക് വിവർത്തനം ചെയ്യുക (Translate titles to Malayalam)",
+    "തലക്കെട്ടുകൾ മലയാളത്തിലേക്ക് വിവർത്തനം ചെയ്യുക",
     value=(lang_choice == "English")
 )
 
 create_btn = st.button("പ്ലേലിസ്റ്റ് നിർമ്മിക്കുക 🚀", type="primary", use_container_width=True)
 
 def fetch_videos(search_text, selected_lang, max_vids):
-    """തിരഞ്ഞെടുത്ത ഭാഷയ്ക്കനുസരിച്ച് യൂട്യൂബ് സെർച്ച് ചെയ്യുന്നു"""
     final_query = search_text.strip()
-    
     if "Malayalam" in selected_lang:
         final_query += " in Malayalam"
     elif selected_lang == "English":
@@ -74,7 +72,6 @@ def fetch_videos(search_text, selected_lang, max_vids):
         return info.get('entries', []) if info else []
 
 def translate_to_malayalam(text):
-    """തലക്കെട്ട് മലയാളത്തിലേക്ക് വിവർത്തനം ചെയ്യുന്നു"""
     try:
         return GoogleTranslator(source='auto', target='ml').translate(text)
     except Exception:
@@ -91,18 +88,36 @@ if create_btn and topic.strip():
                 video_ids = [v['id'] for v in videos if v.get('id')]
                 playlist_url = f"https://www.youtube.com/watch_videos?video_ids={','.join(video_ids)}"
 
-                st.success(f"{len(video_ids)} വീഡിയോകൾ റെഡിയാണ്!")
+                st.success(f"✅ {len(video_ids)} മികച്ച വീഡിയോകൾ അടങ്ങിയ പ്ലേലിസ്റ്റ് തയ്യാർ!")
 
-                # നേരിട്ട് യൂട്യൂബ് ആപ്പിലോ ബ്രൗസറിലോ തുറക്കാനുള്ള ബട്ടൺ
+                # നേരിട്ട് തുറക്കാനുള്ള ബട്ടൺ
                 st.link_button(
-                    "യൂട്യൂബിൽ പ്ലേ ചെയ്യുക ▶️ (Open Playlist)",
+                    "▶️ പ്ലേലിസ്റ്റ് യൂട്യൂബിൽ കാണുക",
                     url=playlist_url,
                     type="primary",
                     use_container_width=True
                 )
 
+                # ഷെയർ ചെയ്യാനുള്ള സന്ദേശം തയ്യാറാക്കുന്നു
+                share_message = f"📌 *{topic.strip()}* സംബന്ധിച്ച മികച്ച യൂട്യൂബ് വീഡിയോകളുടെ പ്ലേലിസ്റ്റ് ഇതാ:\n\n🔗 {playlist_url}"
+                encoded_msg = urllib.parse.quote(share_message)
+
+                whatsapp_url = f"https://api.whatsapp.com/send?text={encoded_msg}"
+                telegram_url = f"https://t.me/share/url?url={urllib.parse.quote(playlist_url)}&text={urllib.parse.quote(f'📌 {topic.strip()} Playlist')}"
+
+                # ഷെയറിംഗ് ബട്ടണുകൾ
+                st.markdown("### 📤 ഒറ്റ ക്ലിക്കിൽ ഷെയർ ചെയ്യാം:")
+                col_wa, col_tg = st.columns(2)
+                with col_wa:
+                    st.link_button("💬 WhatsApp വഴി അയക്കുക", url=whatsapp_url, use_container_width=True)
+                with col_tg:
+                    st.link_button("✈️ Telegram വഴി അയക്കുക", url=telegram_url, use_container_width=True)
+
+                # ലിങ്ക് കോപ്പി ചെയ്യാൻ പാകത്തിൽ ഒരു ബോക്സിൽ കാണിക്കുന്നു
+                st.text_input("📋 നേരിട്ട് കോപ്പി ചെയ്യാനുള്ള ലിങ്ക്:", value=playlist_url)
+
                 st.markdown("---")
-                st.write("**കണ്ടെത്തിയ വീഡിയോകൾ:**")
+                st.write("**ലിസ്റ്റിലെ വീഡിയോകൾ:**")
 
                 for idx, item in enumerate(videos, start=1):
                     original_title = item.get('title', 'No title')
