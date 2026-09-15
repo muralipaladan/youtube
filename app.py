@@ -11,44 +11,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# മൊബൈൽ & ഡെസ്ക്ടോപ്പ് ബട്ടൺ സ്റ്റൈലിംഗ്
-st.markdown("""
-<style>
-    .block-container {
-        padding-top: 1.2rem;
-        padding-bottom: 2rem;
-        padding-left: 0.8rem;
-        padding-right: 0.8rem;
-    }
-    .share-btn-wa {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #25D366 !important;
-        color: white !important;
-        padding: 10px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 0.95rem;
-        margin-bottom: 8px;
-    }
-    .share-btn-tg {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #0088cc !important;
-        color: white !important;
-        padding: 10px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-        font-size: 0.95rem;
-        margin-bottom: 8px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 st.title("🎬 യൂട്യൂബ് പ്ലേലിസ്റ്റ് ക്രിയേറ്റർ")
 st.caption("വിഷയം നൽകുക; മികച്ച വീഡിയോകൾ കണ്ടെത്തി ഒറ്റ ലിങ്കായി ഷെയർ ചെയ്യാം.")
 
@@ -74,7 +36,7 @@ with col2:
     )
 
 translate_option = st.checkbox(
-    "തലക്കെട്ടുകൾ മലയാളത്തിലേക്ക് വിവർത്തനം ചെയ്യുക (Translate titles to Malayalam)",
+    "തലക്കെട്ടുകൾ മലയാളത്തിലേക്ക് വിവർത്തനം ചെയ്യുക",
     value=False
 )
 
@@ -117,7 +79,7 @@ if create_btn and topic.strip():
 
                 st.success(f"✅ {len(video_ids)} വീഡിയോകൾ റെഡിയാണ്!")
 
-                # യൂട്യൂബിൽ നേരിട്ട് പ്ലേ ചെയ്യുന്ന പ്രധാന ബട്ടൺ
+                # 1. യൂട്യൂബിൽ നേരിട്ട് കാണാനുള്ള ബട്ടൺ
                 st.link_button(
                     "▶️ യൂട്യൂബിൽ പ്ലേ ചെയ്യുക (Open Playlist)",
                     url=playlist_url,
@@ -125,21 +87,23 @@ if create_btn and topic.strip():
                     use_container_width=True
                 )
 
-                # ഷെയറിംഗ് ലിങ്കുകൾ തയ്യാറാക്കുന്നു
+                # ഷെയറിംഗ് ലിങ്കുകൾ
                 share_text = f"📌 *{topic.strip()}* സംബന്ധിച്ച മികച്ച യൂട്യൂബ് വീഡിയോകളുടെ പ്ലേലിസ്റ്റ് ഇതാ:\n\n🔗 {playlist_url}"
                 wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(share_text)}"
                 tg_url = f"https://t.me/share/url?url={urllib.parse.quote(playlist_url)}&text={urllib.parse.quote(f'📌 {topic.strip()} Playlist')}"
 
-                st.markdown("#### 📤 പ്ലേലിസ്റ്റ് ഷെയർ ചെയ്യാം:")
-                
-                c_wa, c_tg = st.columns(2)
-                with c_wa:
-                    st.markdown(f'<a href="{wa_url}" target="_blank" class="share-btn-wa">💬 WhatsApp-ൽ അയക്കുക</a>', unsafe_allow_html=True)
-                with c_tg:
-                    st.markdown(f'<a href="{tg_url}" target="_blank" class="share-btn-tg">✈️ Telegram-ൽ അയക്കുക</a>', unsafe_allow_html=True)
+                st.markdown("---")
+                st.subheader("📤 ലിങ്ക് ഷെയർ ചെയ്യാം")
 
-                # കോപ്പി ചെയ്യാനുള്ള ബോക്സ്
-                st.text_input("📋 നേരിട്ട് കോപ്പി ചെയ്യാനുള്ള പ്ലേലിസ്റ്റ് ലിങ്ക്:", value=playlist_url)
+                # 2. WhatsApp & Telegram ഇൻബിൽറ്റ് ബട്ടണുകൾ
+                col_wa, col_tg = st.columns(2)
+                with col_wa:
+                    st.link_button("💬 WhatsApp വഴി അയക്കുക", url=wa_url, use_container_width=True)
+                with col_tg:
+                    st.link_button("✈️ Telegram വഴി അയക്കുക", url=tg_url, use_container_width=True)
+
+                # 3. കോപ്പി ചെയ്യാനുള്ള ടെക്സ്റ്റ് ബോക്സ്
+                st.text_input("📋 നേരിട്ട് കോപ്പി ചെയ്യാനുള്ള ലിങ്ക്:", value=playlist_url)
 
                 st.markdown("---")
                 st.write("**കണ്ടെത്തിയ വീഡിയോകൾ:**")
