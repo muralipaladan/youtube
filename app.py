@@ -1,9 +1,9 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import urllib.parse
 from yt_dlp import YoutubeDL
 from deep_translator import GoogleTranslator
 
-# പേജ് ലേഔട്ട് കോൺഫിഗറേഷൻ
 st.set_page_config(
     page_title="Smart YT Playlist Share",
     page_icon="🎬",
@@ -12,9 +12,9 @@ st.set_page_config(
 )
 
 st.title("🎬 യൂട്യൂബ് പ്ലേലിസ്റ്റ് ക്രിയേറ്റർ")
-st.caption("വിഷയം നൽകുക; മികച്ച വീഡിയോകൾ കണ്ടെത്തി ഒറ്റ ലിങ്കായി ഷെയർ ചെയ്യാം.")
+st.caption("ഏത് വിഷയത്തിന്റെയും മികച്ച വീഡിയോകൾ കണ്ടെത്തി പ്ലേലിസ്റ്റായി ഷെയർ ചെയ്യാം.")
 
-# ഇൻപുട്ട് ഭാഗം
+# ഇൻപുട്ട് വിവരങ്ങൾ
 topic = st.text_input(
     "പഠിക്കേണ്ട വിഷയം (Topic):",
     placeholder="ഉദാ: python, mutual funds, trading..."
@@ -79,7 +79,7 @@ if create_btn and topic.strip():
 
                 st.success(f"✅ {len(video_ids)} വീഡിയോകൾ റെഡിയാണ്!")
 
-                # 1. യൂട്യൂബിൽ നേരിട്ട് കാണാനുള്ള ബട്ടൺ
+                # 1. യൂട്യൂബിൽ കാണാനുള്ള ബട്ടൺ
                 st.link_button(
                     "▶️ യൂട്യൂബിൽ പ്ലേ ചെയ്യുക (Open Playlist)",
                     url=playlist_url,
@@ -87,22 +87,61 @@ if create_btn and topic.strip():
                     use_container_width=True
                 )
 
-                # ഷെയറിംഗ് ലിങ്കുകൾ
-                share_text = f"📌 *{topic.strip()}* സംബന്ധിച്ച മികച്ച യൂട്യൂബ് വീഡിയോകളുടെ പ്ലേലിസ്റ്റ് ഇതാ:\n\n🔗 {playlist_url}"
-                wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(share_text)}"
-                tg_url = f"https://t.me/share/url?url={urllib.parse.quote(playlist_url)}&text={urllib.parse.quote(f'📌 {topic.strip()} Playlist')}"
+                share_text = f"📌 {topic.strip()} സംബന്ധിച്ച യൂട്യൂബ് പ്ലേലിസ്റ്റ് ഇതാ:"
+                wa_url = f"https://api.whatsapp.com/send?text={urllib.parse.quote(share_text + ' ' + playlist_url)}"
+                tg_url = f"https://t.me/share/url?url={urllib.parse.quote(playlist_url)}&text={urllib.parse.quote(share_text)}"
 
-                st.markdown("---")
-                st.subheader("📤 ലിങ്ക് ഷെയർ ചെയ്യാം")
+                # 2. മൊബൈലിൽ തെളിഞ്ഞു കാണുന്ന നേരിട്ടുള്ള ഷെയർ ബട്ടണുകൾ
+                st.markdown("### 📤 ഷെയർ ചെയ്യാനുള്ള ബട്ടണുകൾ:")
 
-                # 2. WhatsApp & Telegram ഇൻബിൽറ്റ് ബട്ടണുകൾ
-                col_wa, col_tg = st.columns(2)
-                with col_wa:
-                    st.link_button("💬 WhatsApp വഴി അയക്കുക", url=wa_url, use_container_width=True)
-                with col_tg:
-                    st.link_button("✈️ Telegram വഴി അയക്കുക", url=tg_url, use_container_width=True)
+                # WhatsApp ബട്ടൺ
+                st.link_button(
+                    "💬 WhatsApp-ൽ അയക്കുക",
+                    url=wa_url,
+                    use_container_width=True
+                )
 
-                # 3. കോപ്പി ചെയ്യാനുള്ള ടെക്സ്റ്റ് ബോക്സ്
+                # Telegram ബട്ടൺ
+                st.link_button(
+                    "✈️ Telegram-ൽ അയക്കുക",
+                    url=tg_url,
+                    use_container_width=True
+                )
+
+                # മൊബൈൽ സിസ്റ്റം ഷെയർ ബട്ടൺ (Web Share API)
+                share_component_html = f"""
+                <div style="margin-top: 10px;">
+                    <button onclick="shareLink()" style="
+                        width: 100%;
+                        background-color: #3b82f6;
+                        color: white;
+                        padding: 12px;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;">
+                        📲 ഫോണിൽ നിന്ന് നേരിട്ട് ഷെയർ ചെയ്യുക (Mobile Share)
+                    </button>
+                </div>
+                <script>
+                function shareLink() {{
+                    if (navigator.share) {{
+                        navigator.share({{
+                            title: '{topic.strip()} Playlist',
+                            text: '{share_text}',
+                            url: '{playlist_url}'
+                        }}).catch((error) => console.log('Error sharing', error));
+                    }} else {{
+                        navigator.clipboard.writeText('{playlist_url}');
+                        alert('ലിങ്ക് കോപ്പി ചെയ്തു!');
+                    }}
+                }}
+                </script>
+                """
+                components.html(share_component_html, height=65)
+
+                # 3. കോപ്പി ചെയ്യാനുള്ള ലിങ്ക് ബോക്സ്
                 st.text_input("📋 നേരിട്ട് കോപ്പി ചെയ്യാനുള്ള ലിങ്ക്:", value=playlist_url)
 
                 st.markdown("---")
